@@ -4,7 +4,9 @@
 
 Live demo: **https://jev-explained-repo.vercel.app/** (bring your own TypeSafe or Vercel AI Gateway key).
 
-![Jev primitives: Noul (yes/no), Choice (which one), Score (how much)](docs/jev-primitives.png)
+<p align="center">
+  <img src="docs/jev-primitives.png" alt="Jev primitives: Noul (yes/no), Choice (which one), Score (how much)" width="640">
+</p>
 
 An interactive playground that shows, step by step, how [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) — TypeSafe's System One model — works.
 
