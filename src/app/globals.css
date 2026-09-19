@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0e14;
+  --bg-elev: #10141c;
+  --bg-panel: #131821;
+  --bg-hover: #1a2029;
+  --border: #222a36;
+  --border-strong: #2f3a49;
+  --fg: #e6e9ef;
+  --fg-muted: #8b95a7;
+  --fg-dim: #5b6575;
+  --accent: #e07a4f;
+  --accent-soft: rgba(224, 122, 79, 0.15);
+  --ok: #4fc38a;
+  --ok-soft: rgba(79, 195, 138, 0.15);
+  --warn: #e5b45a;
+  --warn-soft: rgba(229, 180, 90, 0.15);
+  --bad: #e5645a;
+  --bad-soft: rgba(229, 100, 90, 0.15);
+  --info: #6aa9ff;
+  --info-soft: rgba(106, 169, 255, 0.15);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-bg-panel: var(--bg-panel);
+  --color-bg-hover: var(--bg-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-dim: var(--fg-dim);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+textarea,
+input {
+  font-family: inherit;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.pulse {
+  animation: pulse-dot 1s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 180ms ease-out both;
+}
+
+@keyframes grow {
+  from {
+    width: 0;
+  }
+}
+.bar-grow {
+  animation: grow 500ms ease-out both;
+}
