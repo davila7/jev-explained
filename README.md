@@ -23,7 +23,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000, pick a provider, paste its key, and run an example: **Email Spam Classifier** (text state) or **NVIDIA: Buy or Sell?** (structured JSON state with market data). Use the `≡ / </>` toggle to switch between the formatted view and the raw request JSON.
+Open http://localhost:3000, pick a provider, paste its key, and run an example: **Email Spam Classifier** (text state) **NVIDIA: Buy or Sell?** (structured JSON state with market data) or **Agent Tool-Call Guardrail** (allow / ask / block a tool call before an agent runs it). Use the `≡ / </>` toggle to switch between the formatted view and the raw request JSON.
 
 ## Providers
 

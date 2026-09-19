@@ -30,6 +30,10 @@ function Row({ label, p, hit, tone }: { label: string; p: number; hit: boolean; 
 }
 
 export function AnswerCard({ id, answer, question }: { id: string; answer: Answer; question?: Question }) {
+  const topLevel =
+    answer.type === "score"
+      ? Object.entries(answer.probabilities).sort((a, b) => b[1] - a[1])[0]?.[0]
+      : undefined;
   return (
     <div className="rounded-md border border-border bg-bg-panel p-4">
       <div className="mb-2 flex items-center gap-2">
@@ -78,7 +82,7 @@ export function AnswerCard({ id, answer, question }: { id: string; answer: Answe
                 key={level}
                 label={`${level} · ${label}`}
                 p={answer.probabilities[level] ?? 0}
-                hit={Math.round(answer.score) === Number(level)}
+                hit={level === topLevel}
                 tone="ok"
               />
             ))}
