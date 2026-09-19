@@ -1,5 +1,9 @@
 # Jev Explained
 
+**Learn how TypeSafe's Jev makes typed, probabilistic decisions — by running it.**
+
+Live demo: **https://jev-explained-repo.vercel.app/** (bring your own TypeSafe or Vercel AI Gateway key).
+
 ![Jev primitives: Noul (yes/no), Choice (which one), Score (how much)](docs/jev-primitives.png)
 
 An interactive playground that shows, step by step, how [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) — TypeSafe's System One model — works.
