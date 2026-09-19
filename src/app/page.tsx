@@ -8,7 +8,7 @@ import { EXAMPLES } from "@/lib/examples";
 import { PROVIDERS } from "@/lib/providers";
 import type { Run, TraceEvent } from "@/lib/trace";
 import { useApiKey } from "@/lib/useApiKey";
-import type { JevRequest, JevResponse, ProxyResult } from "@/lib/types";
+import { parseState, type JevRequest, type JevResponse, type ProxyResult } from "@/lib/types";
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -42,7 +42,7 @@ export default function Home() {
 
     const request: JevRequest = {
       model: PROVIDERS[provider].model,
-      state,
+      state: parseState(state),
       questions: example.questions,
     };
     setRuns((rs) => [

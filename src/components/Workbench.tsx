@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Example, Question } from "@/lib/types";
+import { parseState, type Example, type Question } from "@/lib/types";
 import { PROVIDERS, type ProviderId } from "@/lib/providers";
 
 type Props = {
@@ -32,7 +32,7 @@ export function Workbench({
   const [view, setView] = useState<"cards" | "json">("cards");
   const { url, model } = PROVIDERS[provider];
   const requestJson = JSON.stringify(
-    { model, state, questions: example.questions },
+    { model, state: parseState(state), questions: example.questions },
     null,
     2,
   );
