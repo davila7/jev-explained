@@ -2,26 +2,55 @@ import type { Answer, Question } from "@/lib/types";
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 
-function Bar({ value, tone }: { value: number; tone: "accent" | "ok" | "bad" | "dim" }) {
-  const color = { accent: "bg-accent", ok: "bg-ok", bad: "bg-bad", dim: "bg-fg-dim" }[tone];
+function Bar({
+  value,
+  tone,
+}: {
+  value: number;
+  tone: "accent" | "ok" | "bad" | "dim";
+}) {
+  const color = {
+    accent: "bg-accent",
+    ok: "bg-ok",
+    bad: "bg-bad",
+    dim: "bg-fg-dim",
+  }[tone];
   return (
     <div className="h-2 w-full overflow-hidden rounded bg-bg">
-      <div className={`bar-grow h-full rounded ${color}`} style={{ width: `${Math.max(1, value * 100)}%` }} />
+      <div
+        className={`bar-grow h-full rounded ${color}`}
+        style={{ width: `${Math.max(1, value * 100)}%` }}
+      />
     </div>
   );
 }
 
 function Confidence({ value }: { value: number }) {
-  const tone = value >= 0.8 ? "text-ok" : value >= 0.5 ? "text-warn" : "text-bad";
-  return <span className={`text-[13px] ${tone}`}>confidence {value.toFixed(2)}</span>;
+  const tone =
+    value >= 0.8 ? "text-ok" : value >= 0.5 ? "text-warn" : "text-bad";
+  return (
+    <span className={`text-[13px] ${tone}`}>confidence {value.toFixed(2)}</span>
+  );
 }
 
-function Row({ label, p, hit, tone }: { label: string; p: number; hit: boolean; tone: "accent" | "ok" }) {
+function Row({
+  label,
+  p,
+  hit,
+  tone,
+}: {
+  label: string;
+  p: number;
+  hit: boolean;
+  tone: "accent" | "ok";
+}) {
   const text = tone === "accent" ? "text-accent" : "text-ok";
   return (
     <div>
       <div className="mb-0.5 flex justify-between gap-3 text-[13px]">
-        <span className={hit ? `font-semibold ${text}` : "text-fg-muted"}>{label}</span>
+        <span className={hit ? `font-semibold ${text}` : "text-fg-muted"}>
+          {label}
+        </span>
         <span className={hit ? text : "text-fg-dim"}>{pct(p)}</span>
       </div>
       <Bar value={p} tone={hit ? tone : "dim"} />
@@ -29,11 +58,43 @@ function Row({ label, p, hit, tone }: { label: string; p: number; hit: boolean; 
   );
 }
 
-export function AnswerCard({ id, answer, question }: { id: string; answer: Answer; question?: Question }) {
+export function AnswerCard({
+  id,
+  answer,
+  question,
+  compact,
+}: {
+  id: string;
+  answer: Answer;
+  question?: Question;
+  compact?: boolean;
+}) {
   const topLevel =
     answer.type === "score"
       ? Object.entries(answer.probabilities).sort((a, b) => b[1] - a[1])[0]?.[0]
       : undefined;
+
+  if (compact && answer.type === "score" && topLevel !== undefined) {
+    const max = Object.keys(answer.legend).length - 1;
+    return (
+      <div className="rounded-md border border-border bg-bg-panel px-4 py-2.5">
+        <div className="mb-1 flex items-baseline gap-3 text-sm">
+          <span className="font-semibold">{id}</span>
+          <span className="truncate text-fg-muted">
+            {answer.legend[topLevel]}
+          </span>
+          <span className="ml-auto text-fg-dim">
+            {pct(answer.probabilities[topLevel] ?? 0)}
+          </span>
+          <span className="font-semibold text-ok">
+            {answer.score.toFixed(2)}
+          </span>
+        </div>
+        <Bar value={max > 0 ? answer.score / max : 0} tone="ok" />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-md border border-border bg-bg-panel p-4">
       <div className="mb-2 flex items-center gap-2">
@@ -50,9 +111,13 @@ export function AnswerCard({ id, answer, question }: { id: string; answer: Answe
         <div>
           <div className="mb-1 flex items-baseline justify-between gap-3">
             <span className="text-[13px] text-fg-muted">
-              {question?.type === "noul" ? String(question.instructions) : "P(yes)"}
+              {question?.type === "noul"
+                ? String(question.instructions)
+                : "P(yes)"}
             </span>
-            <span className={`text-2xl font-semibold ${answer.noul >= 0.5 ? "text-ok" : "text-bad"}`}>
+            <span
+              className={`text-2xl font-semibold ${answer.noul >= 0.5 ? "text-ok" : "text-bad"}`}
+            >
               {answer.noul.toFixed(2)}
             </span>
           </div>
@@ -65,7 +130,13 @@ export function AnswerCard({ id, answer, question }: { id: string; answer: Answe
           {Object.entries(answer.probabilities)
             .sort((a, b) => b[1] - a[1])
             .map(([opt, p]) => (
-              <Row key={opt} label={opt} p={p} hit={opt === answer.choice} tone="accent" />
+              <Row
+                key={opt}
+                label={opt}
+                p={p}
+                hit={opt === answer.choice}
+                tone="accent"
+              />
             ))}
         </div>
       )}
@@ -74,7 +145,9 @@ export function AnswerCard({ id, answer, question }: { id: string; answer: Answe
         <div>
           <div className="mb-2 flex items-baseline justify-between">
             <span className="text-[13px] text-fg-muted">score</span>
-            <span className="text-2xl font-semibold text-ok">{answer.score.toFixed(2)}</span>
+            <span className="text-2xl font-semibold text-ok">
+              {answer.score.toFixed(2)}
+            </span>
           </div>
           <div className="space-y-2.5">
             {Object.entries(answer.legend).map(([level, label]) => (

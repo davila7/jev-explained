@@ -6,13 +6,26 @@ export type TraceEvent =
       kind: "response";
       at: number;
       latencyMs: number;
+      questionIds: Record<string, unknown>;
       model: string;
       usage: { input_tokens: number; output_tokens: number };
       raw: unknown;
     }
   | { kind: "answers"; at: number; answers: Record<string, Answer> }
-  | { kind: "decision"; at: number; label: string; detail: string; tone: "ok" | "warn" | "bad" }
-  | { kind: "error"; at: number; status: number; message: string; raw?: unknown };
+  | {
+      kind: "decision";
+      at: number;
+      label: string;
+      detail: string;
+      tone: "ok" | "warn" | "bad";
+    }
+  | {
+      kind: "error";
+      at: number;
+      status: number;
+      message: string;
+      raw?: unknown;
+    };
 
 export type Run = {
   id: number;

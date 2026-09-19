@@ -8,7 +8,12 @@ import { EXAMPLES } from "@/lib/examples";
 import { PROVIDERS } from "@/lib/providers";
 import type { Run, TraceEvent } from "@/lib/trace";
 import { useApiKey } from "@/lib/useApiKey";
-import { parseState, type JevRequest, type JevResponse, type ProxyResult } from "@/lib/types";
+import {
+  parseState,
+  type JevRequest,
+  type JevResponse,
+  type ProxyResult,
+} from "@/lib/types";
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -114,6 +119,7 @@ export default function Home() {
       kind: "response",
       at: Date.now(),
       latencyMs: result.latencyMs,
+      questionIds: data.answers,
       model: data.model,
       usage: data.usage,
       raw: data,

@@ -1,4 +1,10 @@
-import type { Example, NoulAnswer, ChoiceAnswer, ScoreAnswer } from "./types";
+import type {
+  Example,
+  NoulAnswer,
+  ChoiceAnswer,
+  ScoreAnswer,
+  Question,
+} from "./types";
 
 const emailSpamClassifier: Example = {
   id: "email-spam-classifier",
@@ -453,8 +459,193 @@ const toolCallGuardrail: Example = {
   },
 };
 
+type Ticket = { id: string; from: string; subject: string; body: string };
+
+const busyInbox: Ticket[] = [
+  {
+    id: "T1",
+    from: "ops@bigretail.com",
+    subject: "Checkout returning 502 for all customers",
+    body: "Since 09:12 UTC every checkout attempt fails with a 502 from your payments API. We are losing orders every minute. Status page says all green.",
+  },
+  {
+    id: "T2",
+    from: "maria@startup.io",
+    subject: "How do I export invoices as CSV?",
+    body: "Hi! Is there a way to export all invoices from last quarter as CSV? Couldn't find it in the dashboard. No rush.",
+  },
+  {
+    id: "T3",
+    from: "cfo@acme.com",
+    subject: "Double charged on annual plan",
+    body: "We were charged twice for the annual plan renewal ($24,000 x2). Please refund the duplicate charge and confirm by tomorrow, our audit is on Friday.",
+  },
+  {
+    id: "T4",
+    from: "dev@indiehacker.dev",
+    subject: "Feature request: dark mode for the dashboard",
+    body: "Would love a dark mode. Not urgent at all, just a nice to have.",
+  },
+  {
+    id: "T5",
+    from: "security@fintechco.com",
+    subject: "API key visible in your public docs example",
+    body: "One of your documentation pages includes what looks like a live production API key in a code sample. Please rotate it and remove it from the page.",
+  },
+  {
+    id: "T6",
+    from: "john@smallbiz.com",
+    subject: "Webhook retries stopped after upgrade",
+    body: "After upgrading to v3 our webhooks are delivered once but never retried on failure. We're manually reconciling for now, but it's getting tedious.",
+  },
+  {
+    id: "T7",
+    from: "student@university.edu",
+    subject: "Do you offer an education discount?",
+    body: "I'm a student working on a thesis project. Is there any academic pricing?",
+  },
+  {
+    id: "T8",
+    from: "cto@healthapp.com",
+    subject: "SSO login loop for all our users",
+    body: "Since this morning all 400 of our users are stuck in a redirect loop when logging in with SSO. Nobody can access the product.",
+  },
+];
+
+const quietInbox: Ticket[] = [
+  {
+    id: "T1",
+    from: "anna@shop.co",
+    subject: "Typo on pricing page",
+    body: "There's a small typo on the pricing page: 'recieve' should be 'receive'.",
+  },
+  {
+    id: "T2",
+    from: "lee@agency.com",
+    subject: "Can we get a copy of your SOC 2 report?",
+    body: "Our compliance team would like to review your SOC 2 Type II report before we expand usage next quarter.",
+  },
+  {
+    id: "T3",
+    from: "sam@startup.io",
+    subject: "Invoice PDF missing our VAT number",
+    body: "Our invoices don't show our VAT number even though it's set in billing settings. Accounting needs it fixed before month end.",
+  },
+  {
+    id: "T4",
+    from: "dev@company.com",
+    subject: "Rate limit headers question",
+    body: "Which header tells me how many requests I have left in the current window? Docs mention two different names.",
+  },
+  {
+    id: "T5",
+    from: "ops@logistics.com",
+    subject: "Occasional 500 on /v2/shipments (about 1 in 1000)",
+    body: "We see roughly one 500 per thousand calls to /v2/shipments. Retries succeed. Sharing in case it helps you find something.",
+  },
+  {
+    id: "T6",
+    from: "pat@nonprofit.org",
+    subject: "Nonprofit discount?",
+    body: "We're a registered nonprofit. Do you have special pricing?",
+  },
+  {
+    id: "T7",
+    from: "kim@design.studio",
+    subject: "Feature request: bulk tag editing",
+    body: "It would save us hours if we could edit tags on many items at once.",
+  },
+  {
+    id: "T8",
+    from: "alex@fintech.com",
+    subject: "Export finished but file is empty",
+    body: "The CSV export I ran this morning completed but the downloaded file is 0 bytes. Tried twice. Not blocking, we can wait until tomorrow.",
+  },
+];
+
+const inboxState = (tickets: Ticket[]) => json({ inbox: tickets });
+
+/** One Score question per ticket plus two inbox-level questions, all in one request. */
+function inboxQuestions(ids: string[]): Record<string, Question> {
+  const q: Record<string, Question> = {};
+  for (const id of ids) {
+    q[`${id}_priority`] = {
+      type: "score",
+      instructions: `Priority of ticket ${id} in the inbox`,
+      criteria: [
+        "P3 · question, feedback or feature request",
+        "P2 · bug or issue with a workaround",
+        "P1 · blocks the customer's work or money is involved",
+        "P0 · outage, data loss or security incident affecting many users",
+      ],
+    };
+  }
+  q.most_urgent = {
+    type: "choice",
+    instructions: "Which single ticket should the on-call engineer open first?",
+    criteria: Object.fromEntries(ids.map((id) => [id, null])),
+  };
+  q.needs_incident = {
+    type: "noul",
+    instructions:
+      "Does this inbox contain evidence of an active outage or security incident that warrants declaring an incident right now?",
+  };
+  return q;
+}
+
+const inboxTriage: Example = {
+  id: "inbox-triage-fan-out",
+  title: "Inbox Triage (fan-out)",
+  category: "fan-out",
+  description:
+    "8 tickets, 10 questions, 1 request. Jev reads the state once and answers everything in parallel; extra questions are almost free.",
+  state: inboxState(busyInbox),
+  questions: inboxQuestions(busyInbox.map((t) => t.id)),
+  samples: [
+    { label: "Busy morning", state: inboxState(busyInbox) },
+    { label: "Quiet day", state: inboxState(quietInbox) },
+  ],
+  decide: (answers) => {
+    const ranked = Object.entries(answers)
+      .filter(
+        (e): e is [string, ScoreAnswer] =>
+          e[0].endsWith("_priority") && e[1].type === "score",
+      )
+      .map(([k, a]) => ({ id: k.replace("_priority", ""), score: a.score }))
+      .sort((a, b) => b.score - a.score);
+    const first = answers.most_urgent as ChoiceAnswer | undefined;
+    const incident = answers.needs_incident as NoulAnswer | undefined;
+    if (ranked.length === 0 || !first || !incident) {
+      return { label: "No decision", detail: "Missing answers.", tone: "warn" };
+    }
+    const label = (s: number) => `P${Math.max(0, 3 - Math.round(s))}`;
+    const order = ranked.map((r) => `${r.id} ${label(r.score)}`).join(" › ");
+    const p0 = ranked.filter((r) => r.score >= 2.5).length;
+    if (incident.noul >= 0.7 || p0 > 0) {
+      return {
+        label: `Declare incident · start with ${first.choice}`,
+        detail: `needs_incident=${incident.noul.toFixed(2)}, ${p0} ticket(s) at P0. Queue: ${order}`,
+        tone: "bad",
+      };
+    }
+    if (ranked[0].score >= 1.5) {
+      return {
+        label: `Work the queue · start with ${first.choice}`,
+        detail: `No incident (needs_incident=${incident.noul.toFixed(2)}). Queue: ${order}`,
+        tone: "warn",
+      };
+    }
+    return {
+      label: "Nothing urgent · normal SLA",
+      detail: `needs_incident=${incident.noul.toFixed(2)}. Queue: ${order}`,
+      tone: "ok",
+    };
+  },
+};
+
 export const EXAMPLES: Example[] = [
   emailSpamClassifier,
   nvidiaTrade,
   toolCallGuardrail,
+  inboxTriage,
 ];
