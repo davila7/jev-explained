@@ -1,6 +1,5 @@
 import type { Example, NoulAnswer, ChoiceAnswer, ScoreAnswer } from "./types";
 
-export const MODEL = "jev-latest";
 
 const emailSpamClassifier: Example = {
   id: "email-spam-classifier",

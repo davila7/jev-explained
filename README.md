@@ -23,11 +23,20 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000, paste a key from https://console.typesafe.ai/keys, and run the **Email Spam Classifier** example. Use the `≡ / </>` toggle to switch between the formatted view and the raw request JSON.
+Open http://localhost:3000, pick a provider, paste its key, and run the **Email Spam Classifier** example. Use the `≡ / </>` toggle to switch between the formatted view and the raw request JSON.
+
+## Providers
+
+Both providers speak TypeSafe's native request/response shape; only the URL, key and model id change.
+
+| Provider | Endpoint | Model | Key |
+| --- | --- | --- | --- |
+| TypeSafe | `https://api.typesafe.ai/v1/systemone` | `jev-latest` | [console.typesafe.ai/keys](https://console.typesafe.ai/keys) |
+| Vercel AI Gateway | `https://ai-gateway.vercel.sh/typesafe/v1/systemone` | `typesafe-ai/jev` | AI Gateway API key from your Vercel team ([docs](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe)) |
 
 ## How the key is handled
 
-The TypeSafe API does not accept cross-origin browser calls, so the app ships a tiny proxy at `src/app/api/jev/route.ts`. Your key is stored in your browser's `localStorage` only and forwarded on each request in the `x-typesafe-api-key` header; the server never persists it.
+Neither API accepts cross-origin browser calls, so the app ships a tiny proxy at `src/app/api/jev/route.ts`. Keys are stored per provider in your browser's `localStorage` only and forwarded on each request in the `x-jev-api-key` header (with `x-jev-provider` selecting the upstream); the server never persists them.
 
 ## Project layout
 
@@ -43,9 +52,10 @@ src/
     AnswerCard.tsx      noul / choice / score renderers
   lib/
     examples.ts         runnable examples
+    providers.ts        TypeSafe / Vercel AI Gateway endpoints and model ids
     types.ts            TypeSafe API types
     trace.ts            timeline event types
-    useApiKey.ts        localStorage-backed key hook
+    useApiKey.ts        localStorage-backed provider + key hook
 ```
 
 ## Adding an example

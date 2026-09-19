@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { Example, Question } from "@/lib/types";
-import { MODEL } from "@/lib/examples";
+import { PROVIDERS, type ProviderId } from "@/lib/providers";
 
 type Props = {
+  provider: ProviderId;
   example: Example;
   state: string;
   onStateChange: (s: string) => void;
@@ -20,6 +21,7 @@ const TYPE_STYLES: Record<Question["type"], string> = {
 };
 
 export function Workbench({
+  provider,
   example,
   state,
   onStateChange,
@@ -28,8 +30,9 @@ export function Workbench({
   canRun,
 }: Props) {
   const [view, setView] = useState<"cards" | "json">("cards");
+  const { url, model } = PROVIDERS[provider];
   const requestJson = JSON.stringify(
-    { model: MODEL, state, questions: example.questions },
+    { model, state, questions: example.questions },
     null,
     2,
   );
@@ -76,9 +79,7 @@ export function Workbench({
         <div className="px-10 py-8">
           <div className="mb-2 flex items-center justify-between text-[13px] uppercase tracking-wider text-fg-dim">
             <span>Request body</span>
-            <span className="normal-case">
-              POST https://api.typesafe.ai/v1/systemone
-            </span>
+            <span className="normal-case">POST {url}</span>
           </div>
           <pre className="overflow-auto rounded-md border border-border bg-bg p-5 text-sm leading-relaxed text-fg-muted">
             {requestJson}
