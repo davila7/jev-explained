@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Example, Question } from "@/lib/types";
-import { MODEL } from "@/lib/examples";
+import { parseState, type Example, type Question } from "@/lib/types";
+import { PROVIDERS, type ProviderId } from "@/lib/providers";
 
 type Props = {
+  provider: ProviderId;
   example: Example;
   state: string;
   onStateChange: (s: string) => void;
@@ -20,6 +21,7 @@ const TYPE_STYLES: Record<Question["type"], string> = {
 };
 
 export function Workbench({
+  provider,
   example,
   state,
   onStateChange,
@@ -28,8 +30,10 @@ export function Workbench({
   canRun,
 }: Props) {
   const [view, setView] = useState<"cards" | "json">("cards");
+  const { url, model } = PROVIDERS[provider];
+  const compact = Object.keys(example.questions).length > 5;
   const requestJson = JSON.stringify(
-    { model: MODEL, state, questions: example.questions },
+    { model, state: parseState(state), questions: example.questions },
     null,
     2,
   );
@@ -76,9 +80,7 @@ export function Workbench({
         <div className="px-10 py-8">
           <div className="mb-2 flex items-center justify-between text-[13px] uppercase tracking-wider text-fg-dim">
             <span>Request body</span>
-            <span className="normal-case">
-              POST https://api.typesafe.ai/v1/systemone
-            </span>
+            <span className="normal-case">POST {url}</span>
           </div>
           <pre className="overflow-auto rounded-md border border-border bg-bg p-5 text-sm leading-relaxed text-fg-muted">
             {requestJson}
@@ -120,27 +122,33 @@ export function Workbench({
             <div className="mb-2 text-[13px] uppercase tracking-wider text-fg-dim">
               Questions
             </div>
-            <div className="space-y-4">
-              {Object.entries(example.questions).map(([id, q]) => (
-                <div
-                  key={id}
-                  className="rounded-md border border-border bg-bg-panel p-5"
-                >
-                  <div className="mb-1.5 flex items-center gap-2">
-                    <span className="text-sm font-semibold text-fg">{id}</span>
-                    <span
-                      className={`rounded border px-1.5 py-px text-[12px] uppercase ${TYPE_STYLES[q.type]}`}
-                    >
-                      {q.type}
-                    </span>
+            {compact ? (
+              <CompactQuestions questions={example.questions} />
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(example.questions).map(([id, q]) => (
+                  <div
+                    key={id}
+                    className="rounded-md border border-border bg-bg-panel p-5"
+                  >
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <span className="text-sm font-semibold text-fg">
+                        {id}
+                      </span>
+                      <span
+                        className={`rounded border px-1.5 py-px text-[12px] uppercase ${TYPE_STYLES[q.type]}`}
+                      >
+                        {q.type}
+                      </span>
+                    </div>
+                    <div className="text-sm text-fg-muted">
+                      {String(q.instructions)}
+                    </div>
+                    <QuestionCriteria q={q} />
                   </div>
-                  <div className="text-sm text-fg-muted">
-                    {String(q.instructions)}
-                  </div>
-                  <QuestionCriteria q={q} />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -208,5 +216,49 @@ function ViewButton({
     >
       {children}
     </button>
+  );
+}
+
+/** Fan-out examples repeat the same question shape many times; show it once. */
+function CompactQuestions({
+  questions,
+}: {
+  questions: Record<string, Question>;
+}) {
+  const entries = Object.entries(questions);
+  const shownCriteria = new Set<string>();
+  return (
+    <div className="space-y-2">
+      {entries.map(([id, q]) => {
+        const key = q.type + JSON.stringify(q.criteria ?? null);
+        const first = !shownCriteria.has(key);
+        shownCriteria.add(key);
+        return (
+          <div
+            key={id}
+            className="rounded-md border border-border bg-bg-panel px-4 py-3"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-fg">{id}</span>
+              <span
+                className={`rounded border px-1.5 py-px text-[12px] uppercase ${TYPE_STYLES[q.type]}`}
+              >
+                {q.type}
+              </span>
+              <span className="truncate text-sm text-fg-muted">
+                {String(q.instructions)}
+              </span>
+            </div>
+            {first ? (
+              <QuestionCriteria q={q} />
+            ) : (
+              <div className="mt-1 text-[12px] text-fg-dim">
+                same criteria as above
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }

@@ -78,3 +78,14 @@ export type Example = {
   /** Turn the answers into the decision your code would make. */
   decide: (answers: Record<string, Answer>) => { label: string; detail: string; tone: "ok" | "warn" | "bad" };
 };
+
+/** The textarea always holds a string; send it as structured state when it is valid JSON. */
+export function parseState(raw: string): JsonValue {
+  const t = raw.trim();
+  if (t.startsWith("{") || t.startsWith("[")) {
+    try {
+      return JSON.parse(t) as JsonValue;
+    } catch {}
+  }
+  return raw;
+}

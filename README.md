@@ -1,18 +1,40 @@
 # Jev Explained
 
-An interactive playground that shows, step by step, how [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) — TypeSafe's System One model — works.
+![Jev primitives: Noul (yes/no), Choice (which one), Score (how much)](docs/jev-primitives.png)
 
-Paste your TypeSafe API key, pick an example, edit the *state*, press **Run** (or ⌘↵), and watch a Claude Code-style session trace on the right: the request that was sent, latency and token usage, the typed answers with probability bars and confidence, and finally the decision your code makes from those numbers.
+An interactive playground that shows, step by step, how [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) — TypeSafe's System One model — works.
 
 ## What is Jev?
 
-Jev is not a chat LLM. You send it a **state** (any text or JSON) plus a map of typed **questions**, and it answers all of them in parallel in one ~100 ms round trip, returning calibrated probabilities instead of generated text:
+Jev is not a chat LLM. It does not generate text. You send it a **state** (any text or JSON: an email, a market snapshot, a tool call an agent wants to run, a whole inbox) plus one or more typed **questions**, and it returns calibrated probabilities for every question in a single ~100 ms round trip. Your code, not the model, makes the final decision by thresholding on those numbers.
 
-| Question | Returns |
-| --- | --- |
-| `noul` — a yes/no question | `noul`: probability 0–1 |
-| `choice` — pick one option | `choice`, `probabilities`, `confidence` |
-| `score` — rate on ordered levels | `score`, `legend`, `probabilities`, `confidence` |
+### The three primitives
+
+Choose the primitive by the type of question you are asking:
+
+| Primitive | Ask it when | Example | Returns |
+| --- | --- | --- | --- |
+| **Noul** — yes / no? | the question is binary | *Is this email spam?* | one probability, 0 → no, 1 → yes |
+| **Choice** — which one? | you pick from known options | *Which team should handle this?* | the chosen option, a probability for every option, and a `confidence` |
+| **Score** — how much / what level? | you grade on an ordered rubric | *How risky is this?* | a weighted score, a probability for every level, and a `confidence` |
+
+Two things make this different from asking an LLM:
+
+- **Questions run in parallel.** Jev reads the state once and answers every question at the same time, so ten questions cost about the same as one. You can fan out speculatively and let your code decide what matters.
+- **Confidence is a second axis.** Choice and Score answers tell you *what* (the answer) and *how sure* (the shape of the distribution). High confidence → act automatically; low confidence → ask a human.
+
+### What this repo shows
+
+The playground walks through four patterns, each with real requests you can run with your own key:
+
+| Example | Pattern | State | Questions |
+| --- | --- | --- | --- |
+| **Email Spam Classifier** | Text classification | an email | `is_spam` (noul), `folder` (choice), `suspicion` (score) |
+| **NVIDIA: Buy or Sell?** | Decision on structured data | a JSON market snapshot | `action` (choice), `sentiment` (score), `material_risk` (noul) |
+| **Agent Tool-Call Guardrail** | Jev inside an agent harness | a tool call the agent wants to run | `verdict` (choice), `is_destructive` (noul), `blast_radius` (score), `in_scope` (noul) |
+| **Inbox Triage** | Speculative fan-out | 8 support tickets | 8 × `priority` (score), `most_urgent` (choice), `needs_incident` (noul) — one request |
+
+For every run the right-hand panel shows the exact request, latency and token usage, the typed answers with probability bars, and the decision your code makes from them.
 
 Endpoint: `POST https://api.typesafe.ai/v1/systemone` · Model: `jev-latest`. See the [API reference](https://docs.typesafe.ai/api).
 
@@ -23,11 +45,20 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000, paste a key from https://console.typesafe.ai/keys, and run the **Email Spam Classifier** example. Use the `≡ / </>` toggle to switch between the formatted view and the raw request JSON.
+Open http://localhost:3000, pick a provider, paste its key, choose an example and press **Run** (or ⌘↵). Edit the state or switch between the sample states to see how the answers move. Use the `≡ / </>` toggle to see the raw request JSON.
+
+## Providers
+
+Both providers speak TypeSafe's native request/response shape; only the URL, key and model id change.
+
+| Provider | Endpoint | Model | Key |
+| --- | --- | --- | --- |
+| TypeSafe | `https://api.typesafe.ai/v1/systemone` | `jev-latest` | [console.typesafe.ai/keys](https://console.typesafe.ai/keys) |
+| Vercel AI Gateway | `https://ai-gateway.vercel.sh/typesafe/v1/systemone` | `typesafe-ai/jev` | AI Gateway API key from your Vercel team ([docs](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe)) |
 
 ## How the key is handled
 
-The TypeSafe API does not accept cross-origin browser calls, so the app ships a tiny proxy at `src/app/api/jev/route.ts`. Your key is stored in your browser's `localStorage` only and forwarded on each request in the `x-typesafe-api-key` header; the server never persists it.
+Neither API accepts cross-origin browser calls, so the app ships a tiny proxy at `src/app/api/jev/route.ts`. Keys are stored per provider in your browser's `localStorage` only and forwarded on each request in the `x-jev-api-key` header (with `x-jev-provider` selecting the upstream); the server never persists them.
 
 ## Project layout
 
@@ -43,9 +74,10 @@ src/
     AnswerCard.tsx      noul / choice / score renderers
   lib/
     examples.ts         runnable examples
+    providers.ts        TypeSafe / Vercel AI Gateway endpoints and model ids
     types.ts            TypeSafe API types
     trace.ts            timeline event types
-    useApiKey.ts        localStorage-backed key hook
+    useApiKey.ts        localStorage-backed provider + key hook
 ```
 
 ## Adding an example

@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import type { Example } from "@/lib/types";
+import { PROVIDER_IDS, PROVIDERS, type ProviderId } from "@/lib/providers";
 
 type Props = {
+  provider: ProviderId;
+  onProviderChange: (p: ProviderId) => void;
   apiKey: string;
   onApiKeyChange: (key: string) => void;
   examples: Example[];
@@ -11,9 +14,18 @@ type Props = {
   onSelect: (id: string) => void;
 };
 
-export function Sidebar({ apiKey, onApiKeyChange, examples, selectedId, onSelect }: Props) {
+export function Sidebar({
+  provider,
+  onProviderChange,
+  apiKey,
+  onApiKeyChange,
+  examples,
+  selectedId,
+  onSelect,
+}: Props) {
   const [show, setShow] = useState(false);
   const hasKey = apiKey.trim().length > 0;
+  const current = PROVIDERS[provider];
 
   return (
     <aside className="flex h-full w-[300px] shrink-0 flex-col border-r border-border bg-bg-elev">
@@ -21,14 +33,36 @@ export function Sidebar({ apiKey, onApiKeyChange, examples, selectedId, onSelect
         <div className="flex h-9 w-9 items-center justify-center rounded-md border border-accent/60 bg-accent-soft text-accent">
           <span className="text-base leading-none">λ</span>
         </div>
-        <div className="text-sm font-semibold tracking-tight">Jev Explained</div>
+        <div className="text-sm font-semibold tracking-tight">
+          Jev Explained
+        </div>
       </div>
 
       <div className="border-b border-border px-6 py-5">
+        <div className="mb-2 text-[13px] uppercase tracking-wider text-fg-dim">
+          Provider
+        </div>
+        <div className="mb-4 flex overflow-hidden rounded-md border border-border">
+          {PROVIDER_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onProviderChange(id)}
+              className={`flex-1 px-2 py-2 text-[13px] transition-colors ${
+                id === provider
+                  ? "bg-accent-soft text-accent"
+                  : "text-fg-muted hover:bg-bg-hover hover:text-fg"
+              }`}
+            >
+              {PROVIDERS[id].label}
+            </button>
+          ))}
+        </div>
+
         <div className="mb-2 flex items-center justify-between text-[13px] uppercase tracking-wider text-fg-dim">
           <span>API key</span>
           <a
-            href="https://console.typesafe.ai/keys"
+            href={current.keysUrl}
             target="_blank"
             rel="noreferrer"
             className="normal-case text-fg-dim hover:text-fg"
@@ -37,12 +71,15 @@ export function Sidebar({ apiKey, onApiKeyChange, examples, selectedId, onSelect
           </a>
         </div>
         <div className="flex items-center gap-1 rounded-md border border-border bg-bg px-2 focus-within:border-border-strong">
-          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasKey ? "bg-ok" : "bg-warn"}`} />
+          <span
+            className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasKey ? "bg-ok" : "bg-warn"}`}
+          />
           <input
+            key={provider}
             type={show ? "text" : "password"}
             value={apiKey}
             onChange={(e) => onApiKeyChange(e.target.value)}
-            placeholder="paste your key"
+            placeholder={current.keyPlaceholder}
             autoComplete="off"
             spellCheck={false}
             className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-fg-dim"
@@ -55,10 +92,15 @@ export function Sidebar({ apiKey, onApiKeyChange, examples, selectedId, onSelect
             {show ? "hide" : "show"}
           </button>
         </div>
+        <div className="mt-2 text-[13px] text-fg-dim">
+          model <span className="text-fg-muted">{current.model}</span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="mb-2 px-2 text-[13px] uppercase tracking-wider text-fg-dim">Examples</div>
+        <div className="mb-2 px-2 text-[13px] uppercase tracking-wider text-fg-dim">
+          Examples
+        </div>
         <ul className="space-y-1">
           {examples.map((ex) => {
             const active = ex.id === selectedId;
@@ -82,8 +124,13 @@ export function Sidebar({ apiKey, onApiKeyChange, examples, selectedId, onSelect
       </div>
 
       <div className="border-t border-border px-5 py-3 text-[13px] text-fg-dim">
-        <a className="hover:text-fg" href="https://docs.typesafe.ai" target="_blank" rel="noreferrer">
-          docs.typesafe.ai ↗
+        <a
+          className="hover:text-fg"
+          href={current.docsUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {current.label} docs ↗
         </a>
       </div>
     </aside>

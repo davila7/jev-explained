@@ -23,9 +23,15 @@ export function TracePanel({ runs, questions, onClear }: Props) {
   return (
     <aside className="flex h-full w-[540px] shrink-0 flex-col border-l border-border bg-bg-elev">
       <div className="flex items-center justify-between border-b border-border px-6 py-5">
-        <div className="text-[13px] uppercase tracking-wider text-fg-dim">Session</div>
+        <div className="text-[13px] uppercase tracking-wider text-fg-dim">
+          Session
+        </div>
         {runs.length > 0 && (
-          <button type="button" onClick={onClear} className="text-[13px] text-fg-dim hover:text-fg">
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-[13px] text-fg-dim hover:text-fg"
+          >
             clear
           </button>
         )}
@@ -33,9 +39,13 @@ export function TracePanel({ runs, questions, onClear }: Props) {
 
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {runs.length === 0 ? (
-          <div className="mt-16 text-center text-sm text-fg-dim">Press Run to see Jev work.</div>
+          <div className="mt-16 text-center text-sm text-fg-dim">
+            Press Run to see Jev work.
+          </div>
         ) : (
-          runs.map((run) => <RunBlock key={run.id} run={run} questions={questions} />)
+          runs.map((run) => (
+            <RunBlock key={run.id} run={run} questions={questions} />
+          ))
         )}
         <div ref={bottomRef} />
       </div>
@@ -43,7 +53,13 @@ export function TracePanel({ runs, questions, onClear }: Props) {
   );
 }
 
-function RunBlock({ run, questions }: { run: Run; questions: Record<string, Question> }) {
+function RunBlock({
+  run,
+  questions,
+}: {
+  run: Run;
+  questions: Record<string, Question>;
+}) {
   return (
     <div className="mb-6">
       <div className="mb-3 text-[13px] text-fg-dim">
@@ -80,7 +96,15 @@ function Dot({ tone, pulse }: { tone: Tone; pulse?: boolean }) {
   );
 }
 
-function Head({ title, tone, meta }: { title: string; tone: Tone; meta?: string }) {
+function Head({
+  title,
+  tone,
+  meta,
+}: {
+  title: string;
+  tone: Tone;
+  meta?: string;
+}) {
   return (
     <>
       <Dot tone={tone} />
@@ -92,11 +116,21 @@ function Head({ title, tone, meta }: { title: string; tone: Tone; meta?: string 
   );
 }
 
-function Collapsible({ label, children }: { label: string; children: React.ReactNode }) {
+function Collapsible({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="mt-1.5">
-      <button type="button" onClick={() => setOpen((o) => !o)} className="text-[13px] text-fg-dim hover:text-fg">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="text-[13px] text-fg-dim hover:text-fg"
+      >
         {open ? "▾" : "▸"} {label}
       </button>
       {open && (
@@ -108,7 +142,13 @@ function Collapsible({ label, children }: { label: string; children: React.React
   );
 }
 
-function EventRow({ ev, questions }: { ev: TraceEvent; questions: Record<string, Question> }) {
+function EventRow({
+  ev,
+  questions,
+}: {
+  ev: TraceEvent;
+  questions: Record<string, Question>;
+}) {
   switch (ev.kind) {
     case "request":
       return (
@@ -118,23 +158,45 @@ function EventRow({ ev, questions }: { ev: TraceEvent; questions: Record<string,
             tone="dim"
             meta={`${ev.request.model} · ${Object.keys(ev.request.questions).length} questions`}
           />
-          <Collapsible label="JSON">{JSON.stringify(ev.request, null, 2)}</Collapsible>
+          <Collapsible label="JSON">
+            {JSON.stringify(ev.request, null, 2)}
+          </Collapsible>
         </li>
       );
-    case "response":
+    case "response": {
+      const n = Object.keys(ev.questionIds).length;
       return (
         <li className="fade-up relative pb-7">
-          <Head title={`Response · ${ev.latencyMs} ms`} tone="ok" meta={`${ev.usage.input_tokens} tokens in · 0 out`} />
-          <Collapsible label="JSON">{JSON.stringify(ev.raw, null, 2)}</Collapsible>
+          <Head
+            title={`Response · ${ev.latencyMs} ms`}
+            tone="ok"
+            meta={`${ev.usage.input_tokens} tokens in · 0 out`}
+          />
+          {n > 5 && (
+            <div className="mt-1.5 text-[13px] text-fg-dim">
+              {n} questions in one request. One call per question would re-send
+              the state {n}× (~{n}× the tokens and latency).
+            </div>
+          )}
+          <Collapsible label="JSON">
+            {JSON.stringify(ev.raw, null, 2)}
+          </Collapsible>
         </li>
       );
+    }
     case "answers":
       return (
         <li className="fade-up relative pb-7">
           <Head title="Answers" tone="accent" />
           <div className="mt-2 space-y-3">
             {Object.entries(ev.answers).map(([id, a]) => (
-              <AnswerCard key={id} id={id} answer={a} question={questions[id]} />
+              <AnswerCard
+                key={id}
+                id={id}
+                answer={a}
+                question={questions[id]}
+                compact={Object.keys(ev.answers).length > 5}
+              />
             ))}
           </div>
         </li>
@@ -158,11 +220,18 @@ function EventRow({ ev, questions }: { ev: TraceEvent; questions: Record<string,
     case "error":
       return (
         <li className="fade-up relative pb-2">
-          <Head title={ev.status ? `Error · HTTP ${ev.status}` : "Error"} tone="bad" />
+          <Head
+            title={ev.status ? `Error · HTTP ${ev.status}` : "Error"}
+            tone="bad"
+          />
           <div className="mt-2 rounded-md border border-bad/40 bg-bad-soft px-3 py-2 text-[13px] text-bad">
             {ev.message}
           </div>
-          {ev.raw !== undefined && <Collapsible label="body">{JSON.stringify(ev.raw, null, 2)}</Collapsible>}
+          {ev.raw !== undefined && (
+            <Collapsible label="body">
+              {JSON.stringify(ev.raw, null, 2)}
+            </Collapsible>
+          )}
         </li>
       );
   }
