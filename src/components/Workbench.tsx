@@ -153,7 +153,7 @@ export function Workbench({
         </div>
       )}
 
-      <footer className="sticky bottom-0 mt-auto flex items-center border-t border-border bg-bg-elev/95 px-10 py-5 backdrop-blur">
+      <footer className="relative sticky bottom-0 mt-auto flex items-center border-t border-border bg-bg-elev/95 px-10 py-5 backdrop-blur">
         <button
           type="button"
           onClick={onRun}
@@ -169,6 +169,15 @@ export function Workbench({
           )}
         </button>
         <span className="ml-4 text-[13px] text-fg-dim">⌘↵</span>
+        <a
+          href="https://github.com/davila7/jev-explained"
+          target="_blank"
+          rel="noreferrer"
+          title="If this helped you understand Jev, leave a star on GitHub"
+          className="absolute left-1/2 -translate-x-1/2 text-[13px] text-fg-dim transition-colors hover:text-fg"
+        >
+          ★ github.com/davila7/jev-explained
+        </a>
       </footer>
     </section>
   );
