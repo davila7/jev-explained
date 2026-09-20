@@ -169,15 +169,29 @@ export function Workbench({
           )}
         </button>
         <span className="ml-4 text-[13px] text-fg-dim">⌘↵</span>
-        <a
-          href="https://github.com/davila7/jev-explained"
-          target="_blank"
-          rel="noreferrer"
-          title="If this helped you understand Jev, leave a star on GitHub"
-          className="absolute left-1/2 -translate-x-1/2 text-[13px] text-fg-dim transition-colors hover:text-fg"
-        >
-          ★ github.com/davila7/jev-explained
-        </a>
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-4 text-[13px] text-fg-dim">
+          <a
+            href="https://github.com/davila7/jev-explained"
+            target="_blank"
+            rel="noreferrer"
+            title="If this helped you understand Jev, leave a star on GitHub"
+            className="transition-colors hover:text-fg"
+          >
+            ★ github.com/davila7/jev-explained
+          </a>
+          <span>·</span>
+          <span>
+            built by{" "}
+            <a
+              href="https://x.com/dani_avila7"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-fg"
+            >
+              @dani_avila7
+            </a>
+          </span>
+        </div>
       </footer>
     </section>
   );
