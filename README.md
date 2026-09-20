@@ -89,3 +89,11 @@ src/
 ## Adding an example
 
 Add an object to `EXAMPLES` in `src/lib/examples.ts`. Each one declares a `state`, a `questions` map (the same shape the API takes), a few quick-swap `samples`, and a `decide()` function that turns the answers into the decision your code would make.
+
+## Contributing
+
+New examples and fixes are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md) and report security issues as described in [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE) © Daniel Avila
